@@ -2,13 +2,13 @@
 # prepare: flutter app
 
 %global srcrepo mail
-%global commit 46285b2ca881419941e65203c801094261543a72
+%global commit 2dd8b17b9714a1d5659f8e5e99fa1faa7de9b453
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 %global appid dev.frascella.Mail
 
 # The Dart AOT library is private (dlopen'ed by the embedder).
-%global __provides_exclude_from ^%{_libdir}/silica/.*$
+%global __provides_exclude_from ^%{_prefix}/Applications/.*$
 
 Name:           mail
 Version:        0^%{snapdate}git%{shortcommit}
@@ -32,8 +32,11 @@ BuildRequires:  cargo
 BuildRequires:  gcc
 BuildRequires:  zstd
 BuildRequires:  desktop-file-utils
+# silica-bundle puts the app bundle together (silica-os docs/app-bundles.md).
+BuildRequires:  silica-apps
 
 Requires:       silica-embedder%{?_isa}
+Requires:       silica-apps
 Requires:       silica-mail-engine%{?_isa} = %{version}-%{release}
 Recommends:     silica-icons
 
@@ -71,13 +74,18 @@ sed 's|@LIBEXECDIR@|%{_libexecdir}|' %{SOURCE3} > dev.frascella.Mail.service
 install -Dpm 0644 dev.frascella.Mail.service \
   %{buildroot}%{_datadir}/dbus-1/services/dev.frascella.Mail.service
 
-install -dm 0755 %{buildroot}%{_libdir}/silica/apps/%{appid}
-cp -a bundle/flutter_assets %{buildroot}%{_libdir}/silica/apps/%{appid}/
-# 0644: dlopen'ed, kept away from the strip and debuginfo scripts (executables only).
-install -pm 0644 bundle/libapp.so %{buildroot}%{_libdir}/silica/apps/%{appid}/libapp.so
-sed -e 's|@EMBEDDER@|%{_libexecdir}/silica/silica-app|' \
-    -e 's|@BUNDLE@|%{_libdir}/silica/apps/%{appid}/flutter_assets|' \
-    app/linux/%{appid}.desktop.in > %{appid}.desktop
+# Mail as an app bundle in /usr/Applications (silica-os#3, silica-os docs/app-bundles.md): a
+# system app, allowed by its folder and run without a sandbox. Signing with the release key
+# happens where the key is available (silica-bundle build --key); without it the bundle is
+# unsigned.
+version=$(sed -n 's/^version: *\([^+ ]*\).*/\1/p' app/pubspec.yaml)
+install -dm 0755 %{buildroot}%{_prefix}/Applications
+silica-bundle build --info app/linux/Info.toml.in \
+  --set VERSION="$version" --set BUILD=%{snapdate} --set DEVELOPER_KEY=unsigned \
+  --flutter bundle --icon app/icon -o %{buildroot}%{_prefix}/Applications
+# Its desktop entry, for the tools outside Silica (X-Silica-Bundle names the bundle).
+silica-bundle desktop "%{buildroot}%{_prefix}/Applications/Mail.app" --location system \
+  | sed 's|%{buildroot}||g' > %{appid}.desktop
 install -Dpm 0644 %{appid}.desktop %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %check
@@ -89,9 +97,7 @@ desktop-file-validate check.desktop
 %files
 %license LICENSE-MIT LICENSE-APACHE
 %doc README.md
-%dir %{_libdir}/silica
-%dir %{_libdir}/silica/apps
-%{_libdir}/silica/apps/%{appid}/
+%{_prefix}/Applications/Mail.app/
 %{_datadir}/applications/%{appid}.desktop
 
 %files -n silica-mail-engine
@@ -101,6 +107,9 @@ desktop-file-validate check.desktop
 %{_datadir}/dbus-1/services/dev.frascella.Mail.service
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git2dd8b17-1
+- Mail as an app bundle in /usr/Applications (silica-packages#7)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261015git46285b2-1
 - Update to the current main (release 0.1.2)
 

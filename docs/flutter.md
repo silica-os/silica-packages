@@ -27,12 +27,17 @@ The Rust code (Ossido, the embedder, the services, the mail engine) is compiled 
 
 ```
 /usr/lib64/silica/shell/{flutter_assets,libapp.so}
-/usr/lib64/silica/apps/<app id>/{flutter_assets,libapp.so}
+/usr/Applications/<Name>.app/Contents/  an app bundle (silica-os docs/app-bundles.md):
+  Info.toml, app/{flutter_assets,libapp.so}, Resources/icon/, _Signature/
 /usr/libexec/silica/silica-app          the embedder with the system engine
 /usr/share/applications/<app id>.desktop
 ```
 
-Each app's `.desktop` entry comes from its repository (`linux/<app id>.desktop.in`), with
-`@EMBEDDER@` → `silica-app` and `@BUNDLE@` → its `flutter_assets`. `libapp.so` is installed
+Each app is a bundle built by `silica-bundle build` from its repository's
+`linux/Info.toml.in` (window options, names, types, permissions), its AOT bundle and its
+`icon/` folder; its `.desktop` entry is the bundle's compatibility entry (`silica-bundle
+desktop`: `Exec=silica-launch <bundle> %U`, `X-Silica-Bundle=`), for the tools outside
+Silica. System bundles run without a sandbox (silica-desktop `docs/spec/launch.md`). The shell
+keeps its own layout. `libapp.so` is installed
 0644: the embedder loads it with `dlopen`, and the RPM strip and debuginfo scripts (which only
 touch executable files) must leave the AOT snapshot as `gen_snapshot` wrote it.

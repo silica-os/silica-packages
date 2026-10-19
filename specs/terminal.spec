@@ -1,16 +1,16 @@
 # prepare: flutter .
 
 %global srcrepo terminal
-%global commit 3dd25f3a171bfc2771b08fd724b8d025b2c3e370
+%global commit 37e4047073e4f746fb0ef4522cef8c09c87a92ad
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 %global appid dev.frascella.Terminal
 
 # Nothing is compiled by rpmbuild (the Dart AOT library comes prebuilt, docs/flutter.md):
 # no debuginfo.
 %global debug_package %{nil}
 # The Dart AOT library is private (dlopen'ed by the embedder).
-%global __provides_exclude_from ^%{_libdir}/silica/.*$
+%global __provides_exclude_from ^%{_prefix}/Applications/.*$
 
 Name:           terminal
 Version:        0^%{snapdate}git%{shortcommit}
@@ -27,8 +27,11 @@ Source1:        %{srcrepo}-%{commit}-dart-root.tar.zst
 ExclusiveArch:  x86_64
 BuildRequires:  zstd
 BuildRequires:  desktop-file-utils
+# silica-bundle puts the app bundle together (silica-os docs/app-bundles.md).
+BuildRequires:  silica-apps
 
 Requires:       silica-embedder%{?_isa}
+Requires:       silica-apps
 Recommends:     silica-icons
 
 %description
@@ -44,12 +47,18 @@ zstd -dc %{SOURCE1} | tar -x -C bundle
 # Built ahead of time by tools/container.sh (Dart AOT, see docs/flutter.md).
 
 %install
-install -dm 0755 %{buildroot}%{_libdir}/silica/apps/%{appid}
-cp -a bundle/flutter_assets %{buildroot}%{_libdir}/silica/apps/%{appid}/
-install -pm 0644 bundle/libapp.so %{buildroot}%{_libdir}/silica/apps/%{appid}/libapp.so
-sed -e 's|@EMBEDDER@|%{_libexecdir}/silica/silica-app|' \
-    -e 's|@BUNDLE@|%{_libdir}/silica/apps/%{appid}/flutter_assets|' \
-    linux/%{appid}.desktop.in > %{appid}.desktop
+# Terminal as an app bundle in /usr/Applications (silica-os#3, silica-os docs/app-bundles.md): a
+# system app, allowed by its folder and run without a sandbox. Signing with the release key
+# happens where the key is available (silica-bundle build --key); without it the bundle is
+# unsigned.
+version=$(sed -n 's/^version: *\([^+ ]*\).*/\1/p' pubspec.yaml)
+install -dm 0755 %{buildroot}%{_prefix}/Applications
+silica-bundle build --info linux/Info.toml.in \
+  --set VERSION="$version" --set BUILD=%{snapdate} --set DEVELOPER_KEY=unsigned \
+  --flutter bundle --icon icon -o %{buildroot}%{_prefix}/Applications
+# Its desktop entry, for the tools outside Silica (X-Silica-Bundle names the bundle).
+silica-bundle desktop "%{buildroot}%{_prefix}/Applications/Terminal.app" --location system \
+  | sed 's|%{buildroot}||g' > %{appid}.desktop
 install -Dpm 0644 %{appid}.desktop %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %check
@@ -61,12 +70,13 @@ desktop-file-validate check.desktop
 %files
 %license LICENSE-MIT LICENSE-APACHE fonts/OFL.txt
 %doc README.md
-%dir %{_libdir}/silica
-%dir %{_libdir}/silica/apps
-%{_libdir}/silica/apps/%{appid}/
+%{_prefix}/Applications/Terminal.app/
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git37e4047-1
+- Terminal as an app bundle in /usr/Applications (silica-packages#7)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261015git3dd25f3-1
 - Update to the current main (release 0.1.2)
 

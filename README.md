@@ -37,9 +37,9 @@ x86_64 today).
 | `silica-session` | silica-desktop | `silica-session` and the `wayland-sessions` entry |
 | `silica-flutter-engine` | Flutter (prebuilt, see [docs/engine.md](docs/engine.md)) | `libflutter_engine.so` in release mode, `/usr/lib64/silica/engine` |
 | `silica-icons` | silica-icons | `/usr/share/silica/icons` |
-| `mustache`, `clock`, `calculator`, `terminal`, `settings` | the app repositories | `/usr/lib64/silica/apps/<app id>` and the `.desktop` entry |
-| `preview` | preview | the image and PDF viewer (needs `poppler-glib`, `cairo`, `qpdf-libs` at run time) |
-| `mail`, `silica-mail-engine` | mail | the app, and the IMAP/SMTP engine started by D-Bus activation |
+| `mustache`, `clock`, `calculator`, `terminal`, `settings`, `notes`, `text-editor` | the app repositories | the app bundle `/usr/Applications/<Name>.app` (built by `silica-bundle` from the app's `linux/Info.toml.in`) and its compatibility `.desktop` entry |
+| `preview` | preview | the image and PDF viewer, `/usr/Applications/Preview.app` (needs `poppler-glib`, `cairo`, `qpdf-libs` at run time) |
+| `mail`, `silica-mail-engine` | mail | the app (`/usr/Applications/Mail.app`), and the IMAP/SMTP engine started by D-Bus activation |
 
 Inter comes from Fedora (`rsms-inter-fonts`, recommended by `silica-session`); `silica_ui`
 also bundles the two weights it uses in every app.
@@ -52,7 +52,8 @@ silica-desktop ─▶ silica-session ─┬▶ ossido
                                   ├▶ silica-daemon
                                   └▶ silica-portal ─▶ xdg-desktop-portal
                                      (recommends: mustache, silica-icons, rsms-inter-fonts)
-mustache, clock, calculator, terminal, mail, settings, preview ─▶ silica-embedder
+mustache, clock, calculator, terminal, mail, settings, preview, notes, text-editor
+  ─▶ silica-embedder, silica-apps
 mail ─▶ silica-mail-engine
 ```
 

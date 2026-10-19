@@ -23,7 +23,7 @@ cache="${CACHE:-$root/.cache}"
 out="$root/out/fc$fedora"
 
 all=(silica-icons silica-flutter-engine silica-desktop mustache clock
-  calculator terminal mail settings preview)
+  calculator terminal mail settings preview notes text-editor)
 
 if [ $# -eq 0 ]; then
   echo "usage: tools/build.sh <package>... | all   (packages: ${all[*]})" >&2

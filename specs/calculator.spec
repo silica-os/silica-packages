@@ -1,7 +1,7 @@
 # prepare: flutter .
 
 %global srcrepo calculator
-%global commit f029dc2cc69e6a05415262d4bdd8d08b14ac7c3b
+%global commit 862dda834766db918972a8f7a49c7db819371f1b
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global snapdate 20261019
 %global appid dev.frascella.Calculator
@@ -73,6 +73,9 @@ desktop-file-validate check.desktop
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git862dda8-1
+- The bundle carries the generic name and the comment (silica-packages#7)
+
 * Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019gitf029dc2-1
 - Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
 

@@ -63,9 +63,11 @@ set -- \
 
 # The file manager's desktop (silica-desktop#147): Mustache's --desktop mode on the bottom
 # layer, above the wallpaper and below the windows, kept running by Ossido.
-desktop="@LIBDIR@/silica/apps/dev.frascella.Mustache/flutter_assets"
-if [ -n "$SILICA_PREFIX" ] && [ -d "$SILICA_PREFIX/apps/dev.frascella.Mustache/flutter_assets" ]; then
-  desktop="$SILICA_PREFIX/apps/dev.frascella.Mustache/flutter_assets"
+# Mustache is a system app bundle (/usr/Applications/Mustache.app): its Flutter bundle is run
+# directly, as silica-launch runs system apps.
+desktop="/usr/Applications/Mustache.app/Contents/app/flutter_assets"
+if [ -n "$SILICA_PREFIX" ] && [ -d "$SILICA_PREFIX/Applications/Mustache.app/Contents/app/flutter_assets" ]; then
+  desktop="$SILICA_PREFIX/Applications/Mustache.app/Contents/app/flutter_assets"
 fi
 if [ -d "$desktop" ]; then
   set -- "$@" \
