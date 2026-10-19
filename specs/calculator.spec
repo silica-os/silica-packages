@@ -1,9 +1,9 @@
 # prepare: flutter .
 
 %global srcrepo calculator
-%global commit 4058827dfc7eba57258e89388919e6fd5208e7fb
+%global commit f029dc2cc69e6a05415262d4bdd8d08b14ac7c3b
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 %global appid dev.frascella.Calculator
 
 # Nothing is compiled by rpmbuild (the Dart AOT library comes prebuilt, docs/flutter.md):
@@ -73,6 +73,9 @@ desktop-file-validate check.desktop
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019gitf029dc2-1
+- Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261015git4058827-1
 - Update to the current main (release 0.1.2)
 

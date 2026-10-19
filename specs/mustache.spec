@@ -1,9 +1,9 @@
 # prepare: flutter .
 
 %global srcrepo mustache
-%global commit da4d2bf44c01d8432869099a89c5753f2359d208
+%global commit 4ba7e0aabc6ea68a73b081e14fcb81234e047a04
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 %global appid dev.frascella.Mustache
 
 # Nothing is compiled by rpmbuild (the Dart AOT library comes prebuilt, docs/flutter.md):
@@ -67,6 +67,9 @@ desktop-file-validate check.desktop
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0.1.0^20261019git4ba7e0a-1
+- Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0.1.0^20261015gitda4d2bf-1
 - Update to the current main (release 0.1.2)
 

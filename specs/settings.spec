@@ -1,9 +1,9 @@
 # prepare: flutter .
 
 %global srcrepo settings
-%global commit a591c002d2d4d381f0173cd8c5825985f202c0b7
+%global commit 5f5a3957ba3ab3dbec39b7a136e61c2b6f2c7cc8
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 %global appid dev.frascella.Settings
 
 # Nothing is compiled by rpmbuild (the Dart AOT library comes prebuilt, docs/flutter.md):
@@ -70,6 +70,9 @@ desktop-file-validate check.desktop
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git5f5a395-1
+- Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261015gita591c00-1
 - Update to the current main (release 0.1.2)
 

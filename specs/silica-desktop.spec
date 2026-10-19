@@ -2,9 +2,9 @@
 # prepare: flutter shell
 
 %global srcrepo silica-desktop
-%global commit 0ede8e3a7fa5cc22912987db041eafe5821efd38
+%global commit 352aaa7de57a1b70da548ba7329d815e1f256145
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global snapdate 20261015
+%global snapdate 20261019
 
 # The shell's Dart AOT library is private (dlopen'ed by the embedder).
 %global __provides_exclude_from ^%{_libdir}/silica/.*$
@@ -297,6 +297,9 @@ sh -n %{buildroot}%{_libexecdir}/silica/silica-app
 %{_userunitdir}/silica-session.target
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git352aaa7-1
+- Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
+
 * Thu Oct 15 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261015git0ede8e3-1
 - Update to the current main (release 0.1.2); install the Mission Control entry
 
