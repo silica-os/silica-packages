@@ -2,7 +2,7 @@
 # prepare: flutter shell
 
 %global srcrepo silica-desktop
-%global commit 352aaa7de57a1b70da548ba7329d815e1f256145
+%global commit 084363dc6770dbdd1d2642f45c4b44f7361ac026
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global snapdate 20261019
 
@@ -297,6 +297,9 @@ sh -n %{buildroot}%{_libexecdir}/silica/silica-app
 %{_userunitdir}/silica-session.target
 
 %changelog
+* Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git084363d-1
+- Update to the current main: every Silica app as a bundle, Gatekeeper masters, updates and AppImage support
+
 * Mon Oct 19 2026 Emanuele Frascella <emanuele@frascella.dev> - 0^20261019git352aaa7-1
 - Update to the current main: app bundles, LaunchServices (Apps1), Gatekeeper (Trust1), volumes and updates (silica-os#3)
 
