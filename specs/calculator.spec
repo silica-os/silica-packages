@@ -10,7 +10,7 @@
 # no debuginfo.
 %global debug_package %{nil}
 # The Dart AOT library is private (dlopen'ed by the embedder).
-%global __provides_exclude_from ^%{_libdir}/silica/.*$
+%global __provides_exclude_from ^%{_prefix}/Applications/.*$
 
 Name:           calculator
 Version:        0^%{snapdate}git%{shortcommit}
@@ -27,8 +27,11 @@ Source1:        %{srcrepo}-%{commit}-dart-root.tar.zst
 ExclusiveArch:  x86_64
 BuildRequires:  zstd
 BuildRequires:  desktop-file-utils
+# silica-bundle puts the app bundle together (silica-os docs/app-bundles.md).
+BuildRequires:  silica-apps
 
 Requires:       silica-embedder%{?_isa}
+Requires:       silica-apps
 Recommends:     silica-icons
 
 %description
@@ -44,12 +47,17 @@ zstd -dc %{SOURCE1} | tar -x -C bundle
 # Built ahead of time by tools/container.sh (Dart AOT, see docs/flutter.md).
 
 %install
-install -dm 0755 %{buildroot}%{_libdir}/silica/apps/%{appid}
-cp -a bundle/flutter_assets %{buildroot}%{_libdir}/silica/apps/%{appid}/
-install -pm 0644 bundle/libapp.so %{buildroot}%{_libdir}/silica/apps/%{appid}/libapp.so
-sed -e 's|@EMBEDDER@|%{_libexecdir}/silica/silica-app|' \
-    -e 's|@BUNDLE@|%{_libdir}/silica/apps/%{appid}/flutter_assets|' \
-    linux/%{appid}.desktop.in > %{appid}.desktop
+# The Calculator as an app bundle in /usr/Applications (silica-os#3): a system app, allowed
+# by its folder and run without a sandbox. Signing with the release key happens where the key
+# is available (silica-bundle build --key); without it the bundle is unsigned.
+version=$(sed -n 's/^version: *\([^+ ]*\).*/\1/p' pubspec.yaml)
+install -dm 0755 %{buildroot}%{_prefix}/Applications
+silica-bundle build --info linux/Info.toml.in \
+  --set VERSION="$version" --set BUILD=%{snapdate} --set DEVELOPER_KEY=unsigned \
+  --flutter bundle --icon icon -o %{buildroot}%{_prefix}/Applications
+# Its desktop entry, for the tools outside Silica (X-Silica-Bundle names the bundle).
+silica-bundle desktop %{buildroot}%{_prefix}/Applications/Calculator.app --location system \
+  | sed 's|%{buildroot}||g' > %{appid}.desktop
 install -Dpm 0644 %{appid}.desktop %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %check
@@ -61,9 +69,7 @@ desktop-file-validate check.desktop
 %files
 %license LICENSE-MIT LICENSE-APACHE
 %doc README.md
-%dir %{_libdir}/silica
-%dir %{_libdir}/silica/apps
-%{_libdir}/silica/apps/%{appid}/
+%{_prefix}/Applications/Calculator.app/
 %{_datadir}/applications/%{appid}.desktop
 
 %changelog

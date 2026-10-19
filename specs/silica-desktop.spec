@@ -109,8 +109,25 @@ Recommends:     silica-icons
 The Flutter shell of Silica, compiled ahead of time: wallpaper, menu bar, Dock, Faro,
 app switcher, notifications and Control Center, each run as a layer by the embedder.
 
+%package -n silica-apps
+Summary:        App bundles: launch in a sandbox, signatures, disk images
+Requires:       bubblewrap
+Requires:       xdg-dbus-proxy
+Requires:       erofs-fuse
+Requires:       erofs-utils
+Requires:       fuse3
+Requires:       polkit
+
+%description -n silica-apps
+App bundles of Silica (silica-os docs/app-bundles.md): silica-launch starts them after the
+trust check, in a bubblewrap sandbox; silica-bundle builds, signs and packages them and makes
+.sxv disk images; silica-quarantine marks downloads; silica-applications-helper installs into
+/Applications through polkit. Also the /usr/Applications folder, the declaration of the
+dev.silica.Platform runtime, the Open Anyway polkit action and the disk image MIME types.
+
 %package -n silica-session
 Summary:        The Silica Wayland session entry
+Requires:       silica-apps = %{version}-%{release}
 Requires:       ossido = %{version}-%{release}
 Requires:       silica-shell = %{version}-%{release}
 Requires:       silica-daemon = %{version}-%{release}
@@ -133,16 +150,16 @@ mkdir -p shell-bundle
 zstd -dc %{SOURCE2} | tar -x -C shell-bundle
 
 %build
-%cargo_build -- -p ossido -p silica-embedder -p silica-daemon -p silica-portal -p silica-cli
+%cargo_build -- -p ossido -p silica-embedder -p silica-daemon -p silica-portal -p silica-cli -p silica-launch -p silica-bundle
 %{cargo_license_summary -a}
 %{cargo_license -a} > LICENSE.dependencies
 %cargo_vendor_manifest
 
 %install
-for bin in ossido silica-cli silica-action; do
+for bin in ossido silica-cli silica-action silica-launch silica-bundle silica-quarantine; do
   install -Dpm 0755 target/rpm/$bin %{buildroot}%{_bindir}/$bin
 done
-for bin in silica-embedder silica-daemon silica-portal; do
+for bin in silica-embedder silica-daemon silica-portal silica-applications-helper; do
   install -Dpm 0755 target/rpm/$bin %{buildroot}%{_libexecdir}/silica/$bin
 done
 
@@ -183,6 +200,18 @@ install -Dpm 0644 org.freedesktop.impl.portal.desktop.silica.service \
   %{buildroot}%{_datadir}/dbus-1/services/org.freedesktop.impl.portal.desktop.silica.service
 
 # The interface sounds, played by silica-daemon from $XDG_DATA_DIRS/silica/sounds.
+# App bundles (silica-apps): the system's Applications folder, the platform runtime, the trust
+# roots (the release key is added by the image build when it is published), polkit, MIME.
+install -dm 0755 %{buildroot}%{_prefix}/Applications
+install -dm 0755 %{buildroot}%{_datadir}/silica/trust/developer-ca
+install -dm 0755 %{buildroot}%{_datadir}/silica/runtimes/dev.silica.Platform/1
+printf '[Runtime]\nname=dev.silica.Platform\nbranch=1\nfiles=/usr\n' \
+  > %{buildroot}%{_datadir}/silica/runtimes/dev.silica.Platform/1/metadata
+install -Dpm 0644 data/polkit/dev.silica.trust.override.policy \
+  %{buildroot}%{_datadir}/polkit-1/actions/dev.silica.trust.override.policy
+install -Dpm 0644 data/mime/silica-bundles.xml \
+  %{buildroot}%{_datadir}/mime/packages/silica-bundles.xml
+
 install -dm 0755 %{buildroot}%{_datadir}/silica/sounds
 install -pm 0644 data/sounds/*.wav %{buildroot}%{_datadir}/silica/sounds/
 
@@ -246,6 +275,20 @@ sh -n %{buildroot}%{_libexecdir}/silica/silica-app
 %license LICENSE-MIT LICENSE-APACHE
 %dir %{_libdir}/silica
 %{_libdir}/silica/shell/
+
+%files -n silica-apps
+%license LICENSE-MIT LICENSE-APACHE
+%{_bindir}/silica-launch
+%{_bindir}/silica-bundle
+%{_bindir}/silica-quarantine
+%dir %{_libexecdir}/silica
+%{_libexecdir}/silica/silica-applications-helper
+%dir %{_prefix}/Applications
+%dir %{_datadir}/silica
+%{_datadir}/silica/trust/
+%{_datadir}/silica/runtimes/
+%{_datadir}/polkit-1/actions/dev.silica.trust.override.policy
+%{_datadir}/mime/packages/silica-bundles.xml
 
 %files -n silica-session
 %license LICENSE-MIT LICENSE-APACHE
